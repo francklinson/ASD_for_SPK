@@ -1,6 +1,9 @@
 """
 外部调用接口类，基于 aegan_test.py 改写
 """
+import os
+import shutil
+
 import pandas as pd
 import torch
 import yaml
@@ -29,6 +32,11 @@ class AEGANInterface:
         self.netG = None
         self.pth_file = None
         self.load_model()
+        self.D_metric = ['D_maha', 'D_knn', 'D_lof', 'D_cos']
+        self.G_metric = ['G_x_2_sum', 'G_x_2_min', 'G_x_2_max', 'G_x_1_sum', 'G_x_1_min', 'G_x_1_max',
+                         'G_z_2_sum', 'G_z_2_min', 'G_z_2_max', 'G_z_1_sum', 'G_z_1_min', 'G_z_1_max',
+                         'G_z_cos_sum', 'G_z_cos_min', 'G_z_cos_max']
+        self.all_metric = self.D_metric + self.G_metric
 
     def load_model(self):
         """
@@ -42,24 +50,53 @@ class AEGANInterface:
         self.netD.to(self.device)
         self.netG.to(self.device)
 
-    def predict(self, file_path=None):
+    @staticmethod
+    def check_file_path(input_file_path):
+        """
+        检查输入的音频文件格式是否正确
+        """
+        if not os.path.exists(input_file_path):
+            raise FileNotFoundError("file not found!!: {}".format(input_file_path))
+        # 确定是文件
+        if not os.path.isfile(input_file_path):
+            raise FileNotFoundError("This is not a file!!: {}".format(input_file_path))
+        # 检查文件格式，只支持wav
+        if not input_file_path.lower().endswith(".wav"):
+            raise FileNotFoundError("This is not a wav file!!: {}".format(input_file_path))
+
+    def predict(self, file_path):
         train_data = SegSet(self.param, self.param['train_set'], 'train')
         self.param['all_mid'] = train_data.get_mid()
-
         print(f"=> Recorded best performance: {self.pth_file['best_aver']:.4f}")
         mt = "spk"
+        self.check_file_path(file_path)
+        # 测试只使用一个文件，因此把测试文件挪到dataset/devdata/spk/test目录下，命名为anomaly_id_01_00000000.wav
+        self.param["dataset_dir"] = './dataset'
+        target_dir = os.path.join(self.param["dataset_dir"], 'dev_data', mt, 'test')
+        # 复制文件
+        shutil.copy(file_path, target_dir)
+        # 修改文件名
+        old_file_name = os.path.split(file_path)[-1]
+        new_file_name = 'anomaly_id_01_00000000.wav'
+        old_file_path = os.path.join(target_dir, old_file_name)
+        new_file_path = os.path.join(target_dir, new_file_name)
+        if os.path.exists(new_file_path):
+            os.remove(new_file_path)
+        os.rename(old_file_path, new_file_path)
+
         mt_test_set = ClipSet(self.param, mt, 'dev', 'test')
+
         te_ld = DataLoader(mt_test_set,
                            batch_size=1,
                            shuffle=False,
                            num_workers=0)
         print("Test dataloader prepared!")
         train_embs = self.get_d_aver_emb(self.netD, train_data, self.device)
+        y_true_all, y_score_all = self.gan_test(te_ld, train_embs)
 
-        aver, best_metric = self.gan_test(te_ld, train_embs)
-
-    def judge_is_normal(self, file_path):
-        pass
+        # 计算完成后删除文件
+        os.remove(new_file_path)
+        return y_true_all, y_score_all
 
     def get_d_aver_emb(self, netD, train_set, device):
         """
@@ -89,11 +126,6 @@ class AEGANInterface:
         G_metric：生成网络的评价指标，包括不同操作（如加、减、乘、除）和不同距离度量（如欧氏距离、余弦相似度）的结果。
         all_metric：所有评价指标的集合。
         """
-        D_metric = ['D_maha', 'D_knn', 'D_lof', 'D_cos']
-        G_metric = ['G_x_2_sum', 'G_x_2_min', 'G_x_2_max', 'G_x_1_sum', 'G_x_1_min', 'G_x_1_max',
-                    'G_z_2_sum', 'G_z_2_min', 'G_z_2_max', 'G_z_1_sum', 'G_z_1_min', 'G_z_1_max',
-                    'G_z_cos_sum', 'G_z_cos_min', 'G_z_cos_max']
-        all_metric = D_metric + G_metric
 
         """
         初始化嵌入检测器
@@ -104,7 +136,7 @@ class AEGANInterface:
         edetect = EDIS.EmbeddingDetector(train_embs)
         edfunc = {'maha': edetect.maha_score, 'knn': edetect.knn_score,
                   'lof': edetect.lof_score, 'cos': edetect.cos_score}
-        metric2id = {m: meid for m, meid in zip(all_metric, range(len(all_metric)))}
+        metric2id = {m: meid for m, meid in zip(self.all_metric, range(len(self.all_metric)))}
         id2metric = {v: k for k, v in metric2id.items()}
 
         """
@@ -113,6 +145,7 @@ class AEGANInterface:
         stfunc：定义不同操作（如平方、绝对值、余弦相似度）的函数。
         scfunc：定义不同统计操作（如求和、最小值、最大值）的函数。
         """
+
         def specfunc(x):
             return x.sum(axis=tuple(list(range(1, x.ndim))))
 
@@ -164,6 +197,30 @@ class AEGANInterface:
                     pbar.update(1)
         return y_true_all, y_score_all
 
+    def judge_is_normal(self, file_path):
+        """
+        判断音频文件是否正常
+        """
+        _, y_score_all = self.predict(file_path)
+        score_list = []
+        for y_score in y_score_all:
+            for k, v in y_score.items():
+                score = v[0]
+                if isinstance(score, np.ndarray):
+                    score = score[0]
+                score_list.append(score)
+        # 一共19个metric，每个metric都会对应一个阈值
+        # 根据19个中的多数给决策
+        anomaly_threshold = self.param["anomaly_threshold"]
+        count = 0
+        for i in range(19):
+            if score_list[i] < anomaly_threshold[i]:
+                # 比阈值小，认为是正常的
+                count += 1
+        # 有10个指标任务是正常的，返回Ture
+        return count >= 10
+
+
 if __name__ == '__main__':
     a = AEGANInterface()
-    a.predict()
+    print(a.judge_is_normal(file_path=r"E:\音频素材\异音检测\123.wav"))

@@ -6,8 +6,8 @@ spec_dir: ./spec
 log_dir: ./log
 
 mt:
-  train: ['spk']
-  test: ['spk']
+  train: [ 'spk' ]
+  test: [ 'spk' ]
 
 train_set: 'dev'  # 'dev', 'eval', 'deval'
 
@@ -19,8 +19,8 @@ feat:
   frame_num: 128
   graph_hop_f: 1
 net:
-  act: ['leakyrelu', 'relu']  # Encoder, Decoder
-  normalize: {'d':'ln', 'g': 'ln'}
+  act: [ 'leakyrelu', 'relu' ]  # Encoder, Decoder
+  normalize: { 'd': 'ln', 'g': 'ln' }
   nz: 256
   ndf: 32
   ngf: 32
@@ -34,7 +34,7 @@ train:
   bs: 128
   wgan:
     feat_match_eff: 1
-    match_item: {'mu': 1}  # 'mu': 1, 'sigma': 1
+    match_item: { 'mu': 1 }  # 'mu': 1, 'sigma': 1
     ncritic: 1
     lambda_gp: 10  # for gradient penalty
 
@@ -45,3 +45,4 @@ repre:
   normal: 0
   anomaly: 1
 
+anomaly_threshold: [ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 ]
