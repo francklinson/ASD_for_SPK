@@ -39,7 +39,6 @@ data_path_eval = r'E:\音频素材\异音检测\eval_data'
 
 def init_layer(layer, nonlinearity='leaky_relu'):
     nn.init.kaiming_uniform_(layer.weight, nonlinearity=nonlinearity)
-
     if hasattr(layer, 'bias'):
         if layer.bias is not None:
             layer.bias.data.fill_(0.)
