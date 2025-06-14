@@ -1,6 +1,6 @@
 from AnomalySoundDetection.DenseAE.denseae_interface import DenseAEInterface
 from AnomalySoundDetection.ConvolutionalAE.cae_interface import CAEInterface
-
+from AnomalySoundDetection.VAE.VAE_interface import VAEInterface
 
 if __name__ == '__main__':
     d = DenseAEInterface()

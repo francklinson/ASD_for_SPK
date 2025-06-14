@@ -4,9 +4,9 @@ import torch.optim as optim
 import torch.utils.data as data
 from data import *
 from sklearn import mixture
+from AnomalySoundDetection.VAE.model import Autoencoder
 
 # 变量设置
-task = 'Task 2'
 EPOCH_MAX = 100
 block = 'LSTM'  # GRU , LSTM 可选
 optimizer = 'Adam'  # SGD , Adam 可选
@@ -28,155 +28,8 @@ else:
 print('device:' + device)
 print('EPOCH_MAX:' + str(EPOCH_MAX))
 
-data_path_dev = r'E:\音频素材\异音检测\dev_data'
-data_path_additional = '/home/share/dataset/DCASE2020/Dcase2020_task2/data/additional/'
-data_path_eval = r'E:\音频素材\异音检测\eval_data'
-
-
-def init_layer(layer, nonlinearity='leaky_relu'):
-    nn.init.kaiming_uniform_(layer.weight, nonlinearity=nonlinearity)
-
-    if hasattr(layer, 'bias'):
-        if layer.bias is not None:
-            layer.bias.data.fill_(0.)
-
-
-def init_bn(bn):
-    bn.bias.data.fill_(0.)
-    bn.running_mean.data.fill_(0.)
-    bn.weight.data.fill_(1.)
-    bn.running_var.data.fill_(1.)
-
-
-def init_rnnLayers(rLayer):
-    for param in rLayer.parameters():
-        if len(param.shape) >= 2:
-            torch.nn.init.orthogonal_(param.data)
-        else:
-            torch.nn.init.normal_(param.data)
-
-
-class Encoder(nn.Module):
-    def __init__(self, input_size=input_size, hidden1=hidden1, hidden2=hidden2,
-                 hidden3=hidden3, hidden4=hidden4, latent_length=latent_length):
-        super(Encoder, self).__init__()
-
-        # 定义属性
-        self.input_size = input_size
-        self.hidden1 = hidden1
-        self.hidden2 = hidden2
-        self.hidden3 = hidden3
-        self.hidden4 = hidden4
-        self.latent_length = latent_length
-
-        # 设定网络
-        self.input_to_hidden1 = nn.Linear(self.input_size, self.hidden1)
-        self.hidden1_to_hidden2 = nn.Linear(self.hidden1, self.hidden2)
-        self.hidden2_to_hidden3 = nn.Linear(self.hidden2, self.hidden3)
-        self.hidden3_to_hidden4 = nn.Linear(self.hidden3, self.hidden4)
-        # self.hidden4_to_latent = nn.Linear(self.hidden4, self.latent_length)
-        self.hidden4_to_mean = nn.Linear(self.hidden4, self.latent_length)
-        self.hidden4_to_logvar = nn.Linear(self.hidden4, self.latent_length)
-        self.ReLU = nn.ReLU()
-        self.Sigmoid = nn.Sigmoid()
-
-        nn.init.xavier_uniform_(self.hidden4_to_mean.weight)  # 为了通过网络层时，输入和输出的方差相同 服从均匀分布
-        nn.init.xavier_uniform_(self.hidden4_to_logvar.weight)  # 为了通过网络层时，输入和输出的方差相同
-
-        # self.init_weights()
-
-    def init_weights(self):
-        init_layer(self.conv1)
-        init_layer(self.conv2)
-        init_layer(self.conv3)
-        init_layer(self.fc1)
-        init_layer(self.fc2)
-        init_layer(self.fc3)
-        init_bn(self.bn1)
-        init_bn(self.bn2)
-        init_bn(self.bn3)
-        init_bn(self.bn4)
-        init_bn(self.bn5)
-        init_bn(self.bn6)
-        init_rnnLayers(self.rnnLayer)
-
-    def forward(self, x):
-        # img_seq_in = x.view(-1, x.size(0), x.size(1))  # [seq,bach,num_cha]=[154,16,8]
-        # 线性变换
-        hidden1 = self.ReLU(self.input_to_hidden1(x))
-        hidden2 = self.ReLU(self.hidden1_to_hidden2(hidden1))
-        hidden3 = self.ReLU(self.hidden2_to_hidden3(hidden2))
-        hidden4 = self.ReLU(self.hidden3_to_hidden4(hidden3))
-        self.latent_mean = self.hidden4_to_mean(hidden4)
-        self.latent_logvar = self.hidden4_to_logvar(hidden4)
-        std = torch.exp(0.5 * self.latent_logvar)
-        eps = torch.randn_like(std)  # 定义一个和std一样大小的服从标准正太分布的张量
-        latent = torch.mul(eps, std) + self.latent_mean  # 标准正太分布乘以标准差后加上均值 latent.shape(batch,latent_length)
-
-        return latent, self.latent_mean, self.latent_logvar  # x.shape(sqe,batch,input)
-
-
-class Decoder(nn.Module):
-    def __init__(self, output_size=input_size, hidden1=hidden1,
-                 hidden2=hidden2, hidden3=hidden3, hidden4=hidden4, latent_length=latent_length):
-        super(Decoder, self).__init__()
-
-        # 定义属性
-        self.output_size = output_size
-        self.hidden1 = hidden1
-        self.hidden2 = hidden2
-        self.hidden3 = hidden3
-        self.hidden4 = hidden4
-        self.latent_length = latent_length
-
-        # 设定网络
-        self.latent_to_hidden4 = nn.Linear(self.latent_length, self.hidden4)
-        self.hidden4_to_hidden3 = nn.Linear(self.hidden4, self.hidden3)
-        self.hidden3_to_hidden2 = nn.Linear(self.hidden3, self.hidden2)
-        self.hidden2_to_hidden1 = nn.Linear(self.hidden2, self.hidden1)
-        self.hidden1_to_output = nn.Linear(self.hidden1, self.output_size)
-        self.ReLU = nn.ReLU()
-        self.Sigmoid = nn.Sigmoid()
-
-        # self.init_weights()
-
-    def init_weights(self):
-        init_layer(self.deconv1)
-        init_layer(self.deconv2)
-        init_layer(self.deconv3)
-        init_layer(self.fc1)
-        init_layer(self.fc2)
-        init_layer(self.fc3)
-        init_bn(self.bn1)
-        init_bn(self.bn2)
-        init_bn(self.bn3)
-        init_bn(self.bn4)
-        init_bn(self.bn5)
-        init_bn(self.bn6)
-        init_rnnLayers(self.rnnLayer)
-
-    def forward(self, latent):
-        # 反RNN+线性变换
-        hidden4 = self.ReLU(self.latent_to_hidden4(latent))
-        hidden3 = self.ReLU(self.hidden4_to_hidden3(hidden4))
-        hidden2 = self.ReLU(self.hidden3_to_hidden2(hidden3))
-        hidden1 = self.ReLU(self.hidden2_to_hidden1(hidden2))
-        output = self.hidden1_to_output(hidden1)
-
-        return output
-
-
-class Autoencoder(nn.Module):
-    def __init__(self, input_size=input_size, hidden1=hidden1,
-                 hidden2=hidden2, hidden3=hidden3, hidden4=hidden4, latent_length=latent_length):
-        super(Autoencoder, self).__init__()
-        self.encoder = Encoder(input_size, hidden1, hidden2, hidden3, hidden4, latent_length)
-        self.decoder = Decoder(input_size, hidden1, hidden2, hidden3, hidden4, latent_length)
-
-    def forward(self, x):
-        latent, latent_mean, latent_logvar = self.encoder(x)
-        x_recon = self.decoder(latent)
-        return x_recon, latent, latent_mean, latent_logvar
+data_path_dev = r'C:\data\音频素材\异音检测\dev_data'
+data_path_eval = r'C:\data\音频素材\异音检测\eval_data'
 
 
 def calculation_latent(ty_pe, ID, data_path_train, data_path_test):
@@ -253,12 +106,13 @@ def calculation_latent(ty_pe, ID, data_path_train, data_path_test):
                 inputs = data_sample
                 inputs = inputs[0]
                 inputs = inputs.to(device)
-                inputs = inputs.to(torch.float32) # 加这一行，统一一下输入和输出的数据格式
+                inputs = inputs.to(torch.float32)  # 加这一行，统一一下输入和输出的数据格式
                 outputs, latent, latent_mean, latent_logvar = autoencoder(inputs.float())
                 latent_com = latent
                 latent_out = latent_com.detach()
                 kl_loss = -0.5 * torch.mean(1 + latent_logvar - latent_mean.pow(2) - latent_logvar.exp())
                 all_kl_loss.append(kl_loss.item())
+                """这里是损失函数，用的MSE"""
                 loss = criterion(inputs, outputs) + kl_loss
 
                 if phase == 'train':
@@ -331,25 +185,10 @@ def calculation_latent(ty_pe, ID, data_path_train, data_path_test):
 
 def main():
     # for ty_pe in ['fan', 'slider', 'pump', 'valve', 'ToyCar', 'ToyConveyor']:
-    for ty_pe in ['spk']:
-        if ty_pe == 'ToyCar':
-            batch_size = 340
-            for ID in ['id_01', 'id_02', 'id_03', 'id_04']:
-                calculation_latent(ty_pe, ID, data_path_train=data_path_dev, data_path_test=data_path_dev)
-        elif ty_pe == 'ToyConveyor':
-            batch_size = 309
-            for ID in ['id_01', 'id_02', 'id_03']:
-                calculation_latent(ty_pe, ID, data_path_dev, data_path_dev)
-        elif ty_pe == 'spk':
-            batch_size = 309
-            for ID in ['id_01', 'id_02']:
-                calculation_latent(ty_pe, ID, data_path_dev, data_path_dev)
-        else:
-            batch_size = 309
-            for ID in ['id_00', 'id_02', 'id_04', 'id_06']:
-                calculation_latent(ty_pe, ID, data_path_dev, data_path_dev)
-
+    for ID in ['id_01', 'id_02', 'id_03', 'id_04']:
+        calculation_latent('spk', ID, data_path_dev, data_path_dev)
     print('Good Luck')
+
+
 if __name__ == '__main__':
     main()
-
