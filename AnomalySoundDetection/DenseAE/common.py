@@ -22,7 +22,6 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-__versions__ = "1.0.0"
 
 
 def command_line_chk():
@@ -35,8 +34,6 @@ def command_line_chk():
     parser.add_argument('-d', '--dev', action='store_true', help="run mode Development")
     args = parser.parse_args()
     if args.version:
-        print("===============================")
-        print("DCASE 2020 task 2 baseline\nversion {}".format(__versions__))
         print("===============================\n")
     if args.eval ^ args.dev:
         if args.dev:
@@ -54,7 +51,7 @@ def yaml_load():
     """
     load yaml file
     """
-    with open("DenseAE/baseline.yaml", encoding='utf-8') as stream:
+    with open("AnomalySoundDetection/DenseAE/baseline.yaml", encoding='utf-8') as stream:
         param = yaml.safe_load(stream)
     return param
 

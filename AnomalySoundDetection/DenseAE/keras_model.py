@@ -6,15 +6,15 @@ from keras.models import Model
 from keras.layers import Input, Dense, BatchNormalization, Activation
 
 
-def get_model(inputDim):
+def get_model(input_dim):
     """
     define the keras model
     the model based on the simple dense auto encoder 
     (128*128*128*128*8*128*128*128*128)
     """
-    inputLayer = Input(shape=(inputDim,))
+    input_layer = Input(shape=(input_dim,))
 
-    h = Dense(128)(inputLayer)
+    h = Dense(128)(input_layer)
     h = BatchNormalization()(h)
     h = Activation('relu')(h)
 
@@ -50,9 +50,9 @@ def get_model(inputDim):
     h = BatchNormalization()(h)
     h = Activation('relu')(h)
 
-    h = Dense(inputDim)(h)
+    h = Dense(input_dim)(h)
 
-    return Model(inputs=inputLayer, outputs=h)
+    return Model(inputs=input_layer, outputs=h)
 
 
 def load_model(file_path):

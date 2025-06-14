@@ -1,8 +1,8 @@
 # 超参数配置文件
 # 修改此文件以适应数据集和模型
 
-dev_directory: E:\音频素材\异音检测\dev_data
-eval_directory: E:\音频素材\异音检测\eval_data
+dev_directory: C:\data\音频素材\异音检测\dev_data
+eval_directory: C:\data\音频素材\异音检测\eval_data
 model_directory: ./model
 result_directory: ./result
 scalers_directory: ./scalers
@@ -16,7 +16,7 @@ stream:
   hop_length: 16000
 
 step: 3
-anomaly_threshold: 12
+anomaly_threshold: 21
 feature:
   n_mels: 128
   frames: 5

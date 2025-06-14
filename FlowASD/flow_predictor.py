@@ -118,9 +118,9 @@ class FlowPredictor:
                 sample_names = meta[2]
 
                 metric = type_metric_mapping[mt]
-                if (metric == "50%"):
+                if metric == "50%":
                     prediction = anomaly_score.median().item()
-                elif (metric == "std"):
+                elif metric == "std":
                     prediction = anomaly_score.std().item()
                 else:
                     warnings.warn("No fitting metric found: {}".format(metric))
