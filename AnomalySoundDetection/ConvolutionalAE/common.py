@@ -52,7 +52,7 @@ def command_line_chk():
 
 
 def yaml_load():
-    with open("ConvolutionalAE/config.yaml", encoding="utf-8") as stream:
+    with open("AnomalySoundDetection/ConvolutionalAE/config.yaml", encoding="utf-8") as stream:
         param = yaml.safe_load(stream)
     return param
 

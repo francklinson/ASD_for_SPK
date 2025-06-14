@@ -12,7 +12,7 @@ import numpy as np
 from tqdm import tqdm
 import common as com
 import keras_model
-from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve
+from sklearn.metrics import roc_auc_score, precision_recall_curve
 
 param = com.yaml_load()
 

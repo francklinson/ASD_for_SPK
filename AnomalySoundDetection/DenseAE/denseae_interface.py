@@ -4,12 +4,13 @@
 import os
 import sys
 import numpy
-import DenseAE.common as com
-from  DenseAE import keras_model
+import AnomalySoundDetection.DenseAE.common as com
+from AnomalySoundDetection.DenseAE import keras_model
+from AnomalySoundDetection.ASDBase import AnomalySoundDetectionBase
 
-
-class DenseAEInterface:
+class DenseAEInterface(AnomalySoundDetectionBase):
     def __init__(self):
+        super(DenseAEInterface, self).__init__()
         self.model = None
         self.param = com.yaml_load()
         self.load_model()
@@ -21,30 +22,13 @@ class DenseAEInterface:
         """
         machine_type = "spk"
         # set model path
-        model_file = "DenseAE/{model}/model_{machine_type}.hdf5".format(model=self.param["model_directory"],
-                                                                machine_type=machine_type)
+        model_file = "AnomalySoundDetection/DenseAE/model/model_spk.hdf5"
         # load model file
         if not os.path.exists(model_file):
             com.logger.error("{} model not found ".format(machine_type))
             sys.exit(-1)
         self.model = keras_model.load_model(model_file)
 
-    @staticmethod
-    def check_file_path(input_file_path):
-        """
-        检查输入的音频文件格式是否正确
-        """
-        if not os.path.exists(input_file_path):
-            com.logger.error("file not found!!: {}".format(input_file_path))
-            sys.exit(-1)
-        # 确定是文件
-        if not os.path.isfile(input_file_path):
-            com.logger.error("not file!!: {}".format(input_file_path))
-            sys.exit(-1)
-        # 检查文件格式，只支持wav
-        if not input_file_path.lower().endswith(".wav"):
-            com.logger.error("file not wav!!: {}".format(input_file_path))
-            sys.exit(-1)
 
     def predict(self, file_path):
         """

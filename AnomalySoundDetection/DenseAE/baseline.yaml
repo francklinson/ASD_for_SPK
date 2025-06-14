@@ -1,8 +1,8 @@
 # 超参数配置
 
-dev_directory: E:\音频素材\异音检测\dev_data
+dev_directory: C:\data\音频素材\异音检测\dev_data
 #dev_directory :  E:\音频素材\DCASE\dcase2020t2\dev_data
-eval_directory: E:\音频素材\DCASE\dcase2020t2\eval_data
+eval_directory: C:\data\音频素材\异音检测\eval_data
 model_directory: ./model
 result_directory: ./result
 result_file: result.csv
@@ -16,7 +16,7 @@ feature:
   hop_length: 512
   power: 2.0
 
-anomaly_threshold: 12
+anomaly_threshold: 14
 fit:
   compile:
     optimizer: adam

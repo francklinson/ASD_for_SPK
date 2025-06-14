@@ -54,7 +54,7 @@ def yaml_load():
     """
     load yaml file
     """
-    with open("DenseAE/baseline.yaml", encoding='utf-8') as stream:
+    with open("AnomalySoundDetection/DenseAE/baseline.yaml", encoding='utf-8') as stream:
         param = yaml.safe_load(stream)
     return param
 

@@ -4,8 +4,8 @@ Script for test
 import os
 import sys
 import numpy
-import ConvolutionalAE.common as com
-from ConvolutionalAE import keras_model
+import AnomalySoundDetection.ConvolutionalAE.common as com
+from AnomalySoundDetection.ConvolutionalAE import keras_model
 
 
 class CAEInterface:
@@ -21,8 +21,7 @@ class CAEInterface:
         machine_type = "spk"
         print("============== MODEL LOAD ==============")
         # set model path
-        model_file = "ConvolutionalAE/{model}/model_{machine_type}.hdf5".format(model=self.param["model_directory"],
-                                                                machine_type=machine_type)
+        model_file = "AnomalySoundDetection/ConvolutionalAE/model/model_spk.hdf5"
         # load model file
         if not os.path.exists(model_file):
             com.logger.error("{} model not found ".format(machine_type))

@@ -1,13 +1,13 @@
-import torch.nn as nn
-from dcase2020.model_architectures.maf import MAF, MADE, MADEMOG, MAFMOG, RealNVP
-from dcase2020.model_architectures.anomaly_score_model import AnomalyScoreModel
+from ..model_architectures.maf import MAF, MADE, MADEMOG, MAFMOG, RealNVP
+from ..model_architectures.anomaly_score_model import AnomalyScoreModel
 import torch
+
 
 class FlowMAFModel(AnomalyScoreModel):
 
     def __init__(self, flow_model_type, n_blocks, input_size, hidden_size, n_hidden, cond_label_size, input_order,
                  use_batch_norm, activation_fn='relu'):
-
+        model = None
         super().__init__()
         if flow_model_type == 'made':
             model = MADE(input_size, hidden_size, n_hidden, cond_label_size,
