@@ -1,5 +1,6 @@
 """
 定义网络结构
+用于生成对抗网络（GAN）的编码器（Encoder）、解码器（Decoder）和判别器（Discriminator）
 """
 import torch.nn as nn
 
@@ -29,6 +30,9 @@ def NormLayer(normalize, chan, reso):
 class DCEncoder(nn.Module):
     """
     DCGAN DCEncoder NETWORK
+    DCEncoder类定义了一个编码器网络，用于将输入图像编码为潜在向量。
+    网络结构包括卷积层、归一化层和激活函数，逐步减小图像的空间尺寸并增加特征图的深度。
+    最后，可以选择添加一个卷积层将特征图转换为潜在向量。
     """
 
     def __init__(self, isize, nz, ndf, act, normalize, add_final_conv=True):
@@ -64,6 +68,9 @@ class DCEncoder(nn.Module):
 class DCDecoder(nn.Module):
     """
     DCGAN DCDecoder NETWORK
+    DCDecoder类定义了一个解码器网络，用于将潜在向量解码为图像。
+    网络结构包括反卷积层、归一化层和激活函数，逐步增加图像的空间尺寸并减少特征图的深度。
+    最后，使用Tanh激活函数将特征图转换为图像。
     """
 
     def __init__(self, isize, nz, ngf, act, normalize):
@@ -98,6 +105,10 @@ class DCDecoder(nn.Module):
 
 
 class AEDC(nn.Module):
+    """
+    AEDC类定义了一个自编码器，由编码器和解码器组成。
+    forward方法中，输入数据首先通过编码器转换为潜在向量，然后通过解码器重建为图像
+    """
     def __init__(self, param):
         super(AEDC, self).__init__()
         self.Encoder = DCEncoder(isize=param['net']['isize'],
@@ -121,6 +132,11 @@ class AEDC(nn.Module):
 
 
 class Discriminator(nn.Module):
+    """
+    Discriminator类定义了一个判别器网络，用于判断输入图像是真实图像还是生成图像。
+    网络结构包括卷积层、归一化层和激活函数，逐步减小图像的空间尺寸并增加特征图的深度。
+    最后，使用一个全局池化层和全连接层将特征图转换为判别结果。
+    """
     def __init__(self, param):
         super(Discriminator, self).__init__()
         ndf, isize = param['net']['ndf'], param['net']['isize']
@@ -164,3 +180,10 @@ class Discriminator(nn.Module):
         feat = self.feat_extract_layer(x)
         pred = self.output_layer(feat)
         return pred, feat
+
+    """
+    网络中的卷积和反卷积操作都使用了步长为2的卷积核，以有效地减小或增加图像的空间尺寸。
+    归一化层的选择和位置对网络的训练和性能有重要影响。
+    激活函数的选择也会影响网络的训练和性能，ReLU和LeakyReLU是常用的激活函数。
+    判别器中的特征提取层使用了分组卷积（Grouped Convolution），这是一种特殊的卷积操作，可以减少计算量和参数数量。
+    """

@@ -11,7 +11,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import AnomalySoundDetection.AEGAN.emb_distance as EDIS
-from AnomalySoundDetection.AEGAN.net import Discriminator, AEDC
+from AnomalySoundDetection.AEGAN.aegan_net import Discriminator, AEDC
 from AnomalySoundDetection.AEGAN.datasets import SegSet, ClipSet
 from AnomalySoundDetection.ASDBase import AnomalySoundDetectionBase
 

@@ -13,7 +13,7 @@ from sklearn import metrics
 from tqdm import trange
 import utils
 import emb_distance as EDIS
-from net import AEDC, Discriminator
+from aegan_net import AEDC, Discriminator
 from datasets import SegSet, ClipSet
 
 with open('config.yaml', encoding='utf-8') as fp:

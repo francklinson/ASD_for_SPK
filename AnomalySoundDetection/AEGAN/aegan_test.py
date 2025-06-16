@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 import utils
 import emb_distance as EDIS
-from net import Discriminator, AEDC
+from aegan_net import Discriminator, AEDC
 from datasets import SegSet, ClipSet
 
 with open('config.yaml', encoding='utf-8') as fp:
