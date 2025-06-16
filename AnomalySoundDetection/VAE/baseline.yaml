@@ -15,3 +15,5 @@ hidden2: 128
 hidden3: 64
 hidden4: 64
 learning_rate: 0.00001
+
+anomaly_threshold: 14

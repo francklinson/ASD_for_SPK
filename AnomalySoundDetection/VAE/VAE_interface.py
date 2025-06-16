@@ -24,6 +24,7 @@ class VAEInterface(AnomalySoundDetectionBase):
         self.hidden3 = self.const_param['hidden3']
         self.hidden4 = self.const_param['hidden4']
         self.latent_length = self.const_param['latent_length']
+        self.threshold = self.const_param['anomaly_threshold']
 
     def load_audio_data(self, file_path):
         """
@@ -35,7 +36,7 @@ class VAEInterface(AnomalySoundDetectionBase):
         inputs = train_frqe.to("cpu").to(dtype=torch.float32)
 
         # 加载保存的autoencoder参数
-        param = torch.load(r"clustering/spk/epoch/0/autoencoder_id_01.pth")
+        param = torch.load(r"AnomalySoundDetection/VAE/clustering/spk/epoch/0/autoencoder_id_01.pth")
         # autoencoder = torch.load(r"AnomalySoundDetection/VAE/clustering/spk/epoch/0/autoencoder_id_01.pth")
         autoencoder = Autoencoder(self.input_size, self.hidden1, self.hidden2, self.hidden3, self.hidden4,
                                   self.latent_length)
@@ -46,7 +47,7 @@ class VAEInterface(AnomalySoundDetectionBase):
         latent_representation = latent_com.detach()
         return latent_representation
 
-    def is_anomaly(self, file_path, ty_pe, ID, threshold):
+    def judge_is_normal(self, file_path):
         """
         判断音频文件是否异常。
         """
@@ -54,7 +55,7 @@ class VAEInterface(AnomalySoundDetectionBase):
         latent_representation = self.load_audio_data(file_path)
 
         # 加载训练数据的潜在表示
-        all_traning_latent = np.load('clustering/' + ty_pe + '/epoch/95/all_traning_latent' + ID + '.npy')
+        all_traning_latent = np.load(r"AnomalySoundDetection/VAE/clustering/spk/epoch/95/all_traning_latentid_01.npy")
         all_traning_latent = all_traning_latent.reshape(-1, 30)
         # 计算音频文件的潜在表示与训练数据的对数似然值
         gmm = GaussianMixture()
@@ -68,7 +69,7 @@ class VAEInterface(AnomalySoundDetectionBase):
         llh1_llh2 = np.mean(llh1) - np.mean(llh2, axis=0)
         print(llh1_llh2)
         # 判断对数似然值是否低于阈值
-        if llh1_llh2 < threshold:
+        if llh1_llh2 < self.threshold:
             return True
         else:
             return False
@@ -76,12 +77,12 @@ class VAEInterface(AnomalySoundDetectionBase):
 
 if __name__ == '__main__':
     # 示例用法
-    file_path = r"C:\data\音频素材\异音检测\dev_data\spk\test\anomaly_id_01_00000000.wav"  # 替换为你的音频文件路径
+    file = r"C:\data\音频素材\异音检测\dev_data\spk\test\anomaly_id_01_00000000.wav"  # 替换为你的音频文件路径
     ty_pe = 'spk'  # 数据类型
     ID = 'id_01'  # 数据集ID
     threshold = -10  # 对数似然值的阈值
     v = VAEInterface()
-    if v.is_anomaly(file_path, ty_pe, ID, threshold):
+    if v.judge_is_normal(file):
         print('The audio file is abnormal.')
     else:
         print('The audio file is normal.')

@@ -2,7 +2,7 @@ import os
 import numpy as np
 from torch.utils.data import Dataset
 
-import utils
+from AnomalySoundDetection.AEGAN import utils
 
 
 class BaseSet:

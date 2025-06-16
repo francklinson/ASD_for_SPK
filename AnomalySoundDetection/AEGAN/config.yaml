@@ -1,6 +1,6 @@
 # 超参数配置
 
-dataset_dir: E:\音频素材\异音检测
+dataset_dir: C:\data\音频素材\异音检测
 model_dir: ./model
 spec_dir: ./spec
 log_dir: ./log

@@ -4,23 +4,23 @@
 import os
 import shutil
 
-import pandas as pd
 import torch
 import yaml
 import numpy as np
-from sklearn import metrics
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
-import AEGAN.emb_distance as EDIS
-from AEGAN.net import Discriminator, AEDC
-from AEGAN.datasets import SegSet, ClipSet
+import AnomalySoundDetection.AEGAN.emb_distance as EDIS
+from AnomalySoundDetection.AEGAN.net import Discriminator, AEDC
+from AnomalySoundDetection.AEGAN.datasets import SegSet, ClipSet
+from AnomalySoundDetection.ASDBase import AnomalySoundDetectionBase
 
 
-class AEGANInterface:
+class AEGANInterface(AnomalySoundDetectionBase):
     def __init__(self):
+        super(AEGANInterface, self).__init__()
         self.param = None
-        with open('config.yaml', encoding='utf-8') as fp:
+        with open('AnomalySoundDetection/AEGAN/config.yaml', encoding='utf-8') as fp:
             self.param = yaml.safe_load(fp)
         self.device = None
         if torch.cuda.is_available():
@@ -44,7 +44,7 @@ class AEGANInterface:
         """
         self.netD = Discriminator(self.param)
         self.netG = AEDC(self.param)
-        self.pth_file = torch.load(r"model/spk.pth", map_location=torch.device('cpu'), weights_only=False)
+        self.pth_file = torch.load(r"AnomalySoundDetection/AEGAN/model/spk.pth", map_location=torch.device('cpu'), weights_only=False)
         self.netD.load_state_dict(self.pth_file['netD'])
         self.netG.load_state_dict(self.pth_file['netG'])
         self.netD.to(self.device)
@@ -65,13 +65,19 @@ class AEGANInterface:
             raise FileNotFoundError("This is not a wav file!!: {}".format(input_file_path))
 
     def predict(self, file_path):
+        """
+        predict 方法用于预测给定音频文件是否为正常声音。
+        首先加载训练数据，然后检查输入文件路径，将文件复制到测试目录，并重命名。
+        使用 get_d_aver_emb 方法获取训练集的嵌入特征，然后使用 gan_test 方法进行测试。
+        最后，删除临时文件并返回预测结果。
+        """
         train_data = SegSet(self.param, self.param['train_set'], 'train')
         self.param['all_mid'] = train_data.get_mid()
         print(f"=> Recorded best performance: {self.pth_file['best_aver']:.4f}")
         mt = "spk"
         self.check_file_path(file_path)
         # 测试只使用一个文件，因此把测试文件挪到dataset/devdata/spk/test目录下，命名为anomaly_id_01_00000000.wav
-        self.param["dataset_dir"] = './dataset'
+        self.param["dataset_dir"] = 'AnomalySoundDetection/AEGAN/dataset'
         target_dir = os.path.join(self.param["dataset_dir"], 'dev_data', mt, 'test')
         # 复制文件
         shutil.copy(file_path, target_dir)
@@ -101,6 +107,7 @@ class AEGANInterface:
     def get_d_aver_emb(self, netD, train_set, device):
         """
         获取训练集的嵌入特征
+        遍历数据集，并将每个样本的特征存储在字典中。
         """
         netD.eval()
         train_embs = {mid: [] for mid in self.param['all_mid']}
@@ -223,4 +230,4 @@ class AEGANInterface:
 
 if __name__ == '__main__':
     a = AEGANInterface()
-    print(a.judge_is_normal(file_path=r"E:\音频素材\异音检测\123.wav"))
+    print(a.judge_is_normal(r"E:\音频素材\异音检测\dev_data\spk\test\anomaly_id_02_00000001.wav"))
