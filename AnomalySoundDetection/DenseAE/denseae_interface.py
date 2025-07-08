@@ -22,7 +22,7 @@ class DenseAEInterface(AnomalySoundDetectionBase):
         """
         machine_type = "spk"
         # set model path
-        model_file = "AnomalySoundDetection/DenseAE/model/model_spk.hdf5"
+        model_file = "AnomalySoundDetection/DenseAE/model/model_swp.hdf5"
         # load model file
         if not os.path.exists(model_file):
             com.logger.error("{} model not found ".format(machine_type))

@@ -67,18 +67,17 @@ class VAEInterface(AnomalySoundDetectionBase):
         llh2 = gmm.score_samples(latent_representation)
 
         llh1_llh2 = np.mean(llh1) - np.mean(llh2, axis=0)
-        print(llh1_llh2)
         # 判断对数似然值是否低于阈值
         if llh1_llh2 < self.threshold:
-            return True
+            return True,llh1_llh2
         else:
-            return False
+            return False,llh1_llh2
 
 
 if __name__ == '__main__':
     # 示例用法
     file = r"C:\data\音频素材\异音检测\dev_data\spk\test\anomaly_id_01_00000000.wav"  # 替换为你的音频文件路径
-    ty_pe = 'spk'  # 数据类型
+    ty_pe = 'swp'  # 数据类型
     ID = 'id_01'  # 数据集ID
     threshold = -10  # 对数似然值的阈值
     v = VAEInterface()

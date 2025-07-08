@@ -236,19 +236,19 @@ def calculation_latent(ty_pe, ID, data_path_train, data_path_test):
             # os.mkdir('clustering/' + ty_pe + '/epoch/' + str(epoch))  # 逐级创建
             os.makedirs('clustering/' + ty_pe + '/epoch/' + str(epoch))  # 一次创建到底
 
-        np.save('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_traning_latent' + ID, all_traning_latent)
-        all_traning_latent = np.load('clustering/' + ty_pe + '/epoch/' + str(epoch) +
-                                     '/all_traning_latent' + ID + '.npy')
-        print('all_traning_latent.shape:', all_traning_latent.shape)
+        # np.save('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_traning_latent' + ID, all_traning_latent)
+        # all_traning_latent = np.load('clustering/' + ty_pe + '/epoch/' + str(epoch) +
+        #                              '/all_traning_latent' + ID + '.npy')
+        # print('all_traning_latent.shape:', all_traning_latent.shape)
 
-        np.save('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_val_latent' + ID, all_val_latent)
-        all_val_latent = np.load('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_val_latent' + ID + '.npy')
-        print('all_val_latent.shape:', all_val_latent.shape)
+        # np.save('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_val_latent' + ID, all_val_latent)
+        # all_val_latent = np.load('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_val_latent' + ID + '.npy')
+        # print('all_val_latent.shape:', all_val_latent.shape)
 
-        np.save('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_test_latent' + ID, all_test_latent)
-        all_test_latent = np.load('clustering/' + ty_pe + '/epoch/' + str(epoch) +
-                                  '/all_test_latent' + ID + '.npy')
-        print('all_test_latent.shape:', all_test_latent.shape)
+        # np.save('clustering/' + ty_pe + '/epoch/' + str(epoch) + '/all_test_latent' + ID, all_test_latent)
+        # all_test_latent = np.load('clustering/' + ty_pe + '/epoch/' + str(epoch) +
+        #                           '/all_test_latent' + ID + '.npy')
+        # print('all_test_latent.shape:', all_test_latent.shape)
 
         all_traning_latent = all_traning_latent.reshape(-1, 30)
         gmm.fit(all_traning_latent)
@@ -288,6 +288,6 @@ def calculation_latent(ty_pe, ID, data_path_train, data_path_test):
 
 
 if __name__ == '__main__':
-    for ID in ['id_01', 'id_02', 'id_03', 'id_04']:
-        calculation_latent('spk', ID, data_path_dev, data_path_dev)
+    for ID in ['id_01']:
+        calculation_latent('swp', ID, data_path_dev, data_path_dev)
     print('Good Luck')
