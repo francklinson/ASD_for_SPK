@@ -2,14 +2,13 @@ import numpy as np
 import torch
 from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
-
 import config as c
 from localization import export_gradient_maps
 from model import DifferNet, save_model, save_weights
 from utils import *
 
 
-class Score_Observer:
+class ScoreObserver:
     '''Keeps an eye on the current and highest score so far'''
 
     def __init__(self, name):
@@ -36,7 +35,7 @@ def train(train_loader, test_loader):
     optimizer = torch.optim.Adam(model.nf.parameters(), lr=c.lr_init, betas=(0.8, 0.8), eps=1e-04, weight_decay=1e-5)
     model.to(c.device)
 
-    score_obs = Score_Observer('AUROC')
+    score_obs = ScoreObserver('AUROC')
 
     for epoch in range(c.meta_epochs):
 
@@ -87,6 +86,8 @@ def train(train_loader, test_loader):
 
         z_grouped = torch.cat(test_z, dim=0).view(-1, c.n_transforms_test, c.n_feat)
         anomaly_score = t2np(torch.mean(z_grouped ** 2, dim=(-2, -1)))
+        print("is_anomaly: ", is_anomaly)
+        print("anomaly_score: ", anomaly_score)
         score_obs.update(roc_auc_score(is_anomaly, anomaly_score), epoch,
                          print_score=c.verbose or epoch == c.meta_epochs - 1)
 

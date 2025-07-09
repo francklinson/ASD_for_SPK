@@ -3,8 +3,8 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.transforms.functional import rotate
-import config as c
-from multi_transform_loader import ImageFolderMultiTransform
+import AnomalySoundDetection.DifferNet.config as c
+from AnomalySoundDetection.DifferNet.multi_transform_loader import ImageFolderMultiTransform
 
 
 def get_random_transforms():
@@ -82,29 +82,54 @@ def load_datasets(dataset_path, class_name):
     def target_transform(target):
         return class_perm[target]
 
+    # 获取训练数据集的路径
     data_dir_train = os.path.join(dataset_path, class_name, 'train')
+    # 获取测试数据集的路径
     data_dir_test = os.path.join(dataset_path, class_name, 'test')
 
+    # 获取测试数据集中的所有类别
     classes = os.listdir(data_dir_test)
+    # 如果没有'good'子目录，则退出
     if 'good' not in classes:
         print('There should exist a subdirectory "good". Read the doc of this function for further information.')
         exit()
+    # 对类别进行排序
     classes.sort()
+    # 创建一个空列表，用于存储类别的索引
     class_perm = list()
+    # 类别索引从1开始
     class_idx = 1
+    # 遍历所有类别
     for cl in classes:
+        # 如果类别是'good'，则索引为0
         if cl == 'good':
             class_perm.append(0)
         else:
+            # 否则，索引为class_idx，并将class_idx加1
             class_perm.append(class_idx)
             class_idx += 1
 
+    # 获取训练数据的随机变换
     transform_train = get_random_transforms()
 
+    # 加载训练数据集
     trainset = ImageFolderMultiTransform(data_dir_train, transform=transform_train, n_transforms=c.n_transforms)
+    # 加载测试数据集
     testset = ImageFolderMultiTransform(data_dir_test, transform=transform_train, target_transform=target_transform,
                                         n_transforms=c.n_transforms_test)
+    # 返回训练数据集和测试数据集
     return trainset, testset
+
+
+def load_eval_dataset(dataset_path, class_name):
+    """
+
+    """
+    # data_dir_eval = os.path.join(dataset_path, class_name, 'eval')
+    transform_train = get_random_transforms()
+
+    testeval = ImageFolderMultiTransform(dataset_path, transform=transform_train, n_transforms=c.n_transforms_test)
+    return testeval
 
 
 def make_dataloaders(trainset, testset):
@@ -121,3 +146,4 @@ def preprocess_batch(data):
     inputs, labels = inputs.to(c.device), labels.to(c.device)
     inputs = inputs.view(-1, *inputs.shape[-3:])
     return inputs, labels
+

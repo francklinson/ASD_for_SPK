@@ -5,9 +5,9 @@ import torch.nn.functional as F
 from torch import nn
 from torchvision.models import alexnet
 
-import config as c
-from freia_funcs import permute_layer, glow_coupling_layer, F_fully_connected, ReversibleGraphNet, OutputNode, \
-    InputNode, Node
+import AnomalySoundDetection.DifferNet.config as c
+from AnomalySoundDetection.DifferNet.freia_funcs import permute_layer, glow_coupling_layer, F_fully_connected, \
+    ReversibleGraphNet, OutputNode,  InputNode, Node
 
 WEIGHT_DIR = './weights'
 MODEL_DIR = './models'
