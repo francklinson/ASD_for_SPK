@@ -27,5 +27,9 @@ def evaluate(model_name, image_folder, fixed_transforms=True):
     for f in files:
         get_anomaly_score(model, join(image_folder, f), transforms)
 
-image_folder = 'dummy_dataset/dummy_class/train/good'
+# image_folder = 'dummy_dataset/dummy_class/train/good'
+image_folder = 'eval/32k/eval'
 evaluate(c.modelname, image_folder, fixed_transforms=True)
+
+
+#TODO 根据evaluate改写接口

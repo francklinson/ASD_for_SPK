@@ -54,7 +54,7 @@ def save_model(model, filename):
 
 def load_model(filename):
     path = os.path.join(MODEL_DIR, filename)
-    model = torch.load(path)
+    model = torch.load(path,weights_only=False)
     return model
 
 
