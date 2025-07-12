@@ -17,7 +17,7 @@ dataset_path = r"C:\data\mvtec_anomaly_detection"
 class_name = "32k"
 modelname = "32k"
 
-img_size = (1000, 600)
+img_size = (1024, 768)
 # img_size = (900, 900)
 img_dims = [3] + list(img_size)
 

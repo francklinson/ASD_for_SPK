@@ -6,7 +6,7 @@ For further information contact Marco Rudolph (rudolph@tnt.uni-hannover.de)
 """
 
 import config as c
-from train import train
+from differnet_train import train
 from utils import load_datasets, make_dataloaders
 
 train_set, test_set = load_datasets(c.dataset_path, c.class_name)

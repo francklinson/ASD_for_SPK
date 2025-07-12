@@ -7,10 +7,13 @@ from torchvision.models import alexnet
 
 import AnomalySoundDetection.DifferNet.config as c
 from AnomalySoundDetection.DifferNet.freia_funcs import permute_layer, glow_coupling_layer, F_fully_connected, \
-    ReversibleGraphNet, OutputNode,  InputNode, Node
+    ReversibleGraphNet, OutputNode, InputNode, Node
 
-WEIGHT_DIR = './weights'
-MODEL_DIR = './models'
+# 获取当前文件路径
+current_path = os.path.dirname(os.path.abspath(__file__))
+
+WEIGHT_DIR = os.path.join(current_path, 'weights')
+MODEL_DIR = os.path.join(current_path, 'models')
 
 
 def nf_head(input_dim=c.n_feat):
@@ -47,24 +50,43 @@ class DifferNet(nn.Module):
 
 
 def save_model(model, filename):
+    """
+    保存完整模型
+    """
     if not os.path.exists(MODEL_DIR):
         os.makedirs(MODEL_DIR)
     torch.save(model, os.path.join(MODEL_DIR, filename))
 
-
-def load_model(filename):
-    path = os.path.join(MODEL_DIR, filename)
-    model = torch.load(path,weights_only=False)
-    return model
-
-
 def save_weights(model, filename):
+    """
+    保存模型权重
+    """
     if not os.path.exists(WEIGHT_DIR):
         os.makedirs(WEIGHT_DIR)
     torch.save(model.state_dict(), os.path.join(WEIGHT_DIR, filename))
 
 
+def load_model(filename):
+    """
+    加载完整模型
+    """
+    path = os.path.join(MODEL_DIR, filename)
+    print("Loading model file: ", path)
+    # 判断模型文件是否存在
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Model file {path} not found.")
+    model_ins = torch.load(path, weights_only=False)
+    return model_ins
+
+
 def load_weights(model, filename):
+    """
+    加载模型权重
+    """
     path = os.path.join(WEIGHT_DIR, filename)
+    print("Loading weights file: ", path)
+    # 判断模型文件是否存在
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Weights file {path} not found.")
     model.load_state_dict(torch.load(path))
-    return model
+
