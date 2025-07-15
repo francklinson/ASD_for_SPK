@@ -1,5 +1,7 @@
-'''This file configures the training procedure because handling arguments in every single function is so exhaustive for
-research purposes. Don't try this code if you are a software engineer.'''
+"""
+This file configures the training procedure because handling arguments in every single function is so exhaustive for
+research purposes. Don't try this code if you are a software engineer.
+"""
 
 # device settings
 device = 'cuda'  # or 'cpu'
@@ -42,7 +44,7 @@ kernel_sizes = [3] * (n_coupling_blocks - 1) + [5]
 
 # total epochs = meta_epochs * sub_epochs
 # evaluation after <sub_epochs> epochs
-meta_epochs = 4  # total epochs = meta_epochs * sub_epochs
+meta_epochs = 20  # total epochs = meta_epochs * sub_epochs
 sub_epochs = 60  # evaluate after this number of epochs
 
 # output settings

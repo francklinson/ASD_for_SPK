@@ -1,7 +1,9 @@
-'''This is the repo which contains the original code to the WACV 2022 paper
+"""
+This is the repo which contains the original code to the WACV 2022 paper
 "Fully Convolutional Cross-Scale-Flows for Image-based Defect Detection"
 by Marco Rudolph, Tom Wehrbein, Bodo Rosenhahn and Bastian Wandt.
-For further information contact Marco Rudolph (rudolph@tnt.uni-hannover.de)'''
+For further information contact Marco Rudolph (rudolph@tnt.uni-hannover.de)
+"""
 
 import config as c
 from csflow_train import train

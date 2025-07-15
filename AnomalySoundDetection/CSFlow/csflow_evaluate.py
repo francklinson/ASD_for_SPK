@@ -44,6 +44,34 @@ def compare_histogram(scores, classes, thresh=2.5, n_bins=64):
 
 
 def viz_roc(values, classes, class_names):
+    """
+   绘制接收者操作特征（ROC）曲线，并保存这些曲线的图像。ROC曲线是评估分类模型性能的重要工具，特别是在二分类或多分类问题中。
+    ### 函数参数
+    - `values`: 模型预测的输出值，通常是概率或分数。
+    - `classes`: 真实标签，是一个数组或列表。
+    - `class_names`: 类别名称的列表，用于在多分类情况下区分不同类别的ROC曲线。
+
+    ### 实现原理
+    1. **导出ROC曲线（`export_roc`函数）**:
+       - 使用`roc_curve`函数计算每个类别的假阳性率（FPR）和真阳性率（TPR）。
+       - 使用`auc`函数计算ROC曲线下面积（AUC），这是一个衡量模型性能的指标。
+       - 使用`matplotlib`库绘制ROC曲线，并保存图像。
+
+    2. **绘制所有类别的ROC曲线**:
+       - 调用`export_roc`函数绘制所有类别的ROC曲线。
+
+    3. **绘制每个类别的ROC曲线**:
+       - 对于每个类别，过滤出该类别的样本，并调用`export_roc`函数绘制该类别的ROC曲线。
+
+    ### 注意事项
+    - `roc_curve`和`auc`函数来自`sklearn.metrics`模块，需要确保已安装`scikit-learn`库。
+    - `matplotlib`库用于绘制ROC曲线，需要确保已安装。
+    - `deepcopy`函数用于深拷贝`classes`数组，以避免在计算过程中修改原始数据。
+    - `join`函数用于拼接文件路径，需要确保已导入`os.path`模块。
+    - `score_export_dir`变量应该提前定义，表示ROC曲线图像保存的目录。
+    - `c.class_name`变量应该提前定义，表示当前类别的名称，在绘制ROC曲线时使用。
+
+    """
     def export_roc(values, classes, export_name='all'):
         # Compute ROC curve and ROC area for each class
         classes = deepcopy(classes)
@@ -75,6 +103,24 @@ def viz_roc(values, classes, class_names):
 
 
 def viz_maps(maps, name, label):
+    """
+    可视化给定的地图（maps）并将其保存为图像文件。函数接受三个参数：`maps`（需要可视化的地图数据），`name`（保存图像的文件名前缀），以及`label`（用于决定是否保存原始图像和叠加图）。
+
+    ### 实现原理
+
+    1. **加载图像**：
+       - 使用`PIL.Image.open`打开指定路径的图像文件，并将其转换为RGB模式。
+       - 将图像转换为NumPy数组格式，以便后续处理。
+
+    2. **调整地图大小**：
+       - 使用`F.interpolate`函数将地图数据调整到与图像相同的大小，以便进行可视化。
+       - `t2np`函数将调整后的地图数据转换为NumPy数组格式。
+
+    3. **绘制地图图像**：
+       - 使用`matplotlib.pyplot`库绘制地图图像，并保存为文件。
+       - 如果`label`大于0，则绘制原始图像和叠加图，并保存为文件。
+
+    """
     img_path = img_paths[c.viz_sample_count]
     image = PIL.Image.open(img_path).convert('RGB')
     image = np.array(image)
@@ -97,10 +143,18 @@ def viz_maps(maps, name, label):
     return
 
 
-def viz_map_array(maps, labels, n_col=8, subsample=4, max_figures=-1):
+def viz_map_array(maps, labels, n_col=8, subsample=1, max_figures=-1):
+    """
+    可视化一组图像及其对应的特征图（maps）
+    maps: 要可视化的特征图数组。
+    labels: 与每个特征图对应的标签数组。
+    n_col: 每行显示的图像列数，默认为8。
+    subsample: 采样间隔，即每多少个特征图进行一次可视化，默认为4。
+    max_figures: 最多保存的图像数量，默认为-1，表示不限制。
+
+    """
     plt.clf()
     fig, subplots = plt.subplots(3, n_col)
-
     fig_count = -1
     col_count = -1
     for i in range(len(maps)):
@@ -115,7 +169,7 @@ def viz_map_array(maps, labels, n_col=8, subsample=4, max_figures=-1):
             if fig_count >= 0:
                 plt.savefig(join(map_export_dir, str(fig_count) + '.jpg'), bbox_inches='tight', pad_inches=0)
                 plt.close()
-            fig, subplots = plt.subplots(3, n_col, figsize=(22, 8))
+            fig, subplots = plt.subplots(3, n_col, figsize=(44, 16))
             fig_count += 1
             if fig_count == max_figures:
                 return
@@ -132,7 +186,7 @@ def viz_map_array(maps, labels, n_col=8, subsample=4, max_figures=-1):
         subplots[0][col_count].set_title(c.class_name + ":\n" + anomaly_description)
         subplots[2][col_count].imshow(image)
         subplots[2][col_count].axis('off')
-        subplots[2][col_count].imshow(map, cmap='viridis', alpha=0.3)
+        subplots[2][col_count].imshow(map, cmap='viridis', alpha=0.5)
     for i in range(col_count, n_col):
         subplots[0][i].axis('off')
         subplots[1][i].axis('off')
